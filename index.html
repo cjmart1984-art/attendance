@@ -3,671 +3,665 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>출근 체크 시스템</title>
+<title>출결 관리 시스템 — 관리자</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f5f5f7;color:#1a1a1a;min-height:100vh;}
-.app{max-width:480px;margin:0 auto;padding:0 0 3rem;}
-header{background:#fff;border-bottom:1px solid #eee;padding:14px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f0f2f5;color:#1a1a1a;min-height:100vh;}
+.app{max-width:520px;margin:0 auto;padding:0 0 3rem;}
+header{background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;padding:16px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
 header h1{font-size:16px;font-weight:600;}
-.tabs{display:flex;background:#fff;border-bottom:1px solid #eee;overflow-x:auto;}
-.tab{flex:1;padding:12px 4px;font-size:12px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;text-align:center;}
-.tab.active{color:#000;border-bottom-color:#000;font-weight:600;}
-.section{display:none;padding:20px;}.section.active{display:block;}
-.bar{border-radius:12px;padding:12px 16px;font-size:13px;font-weight:500;margin-bottom:14px;text-align:center;display:none;}
+.header-sub{font-size:11px;opacity:.8;margin-top:2px;}
+.admin-badge{background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:11px;}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e0e0e0;overflow-x:auto;position:sticky;top:56px;z-index:99;}
+.tab{flex:1;padding:12px 4px;font-size:11px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;text-align:center;}
+.tab.active{color:#1565c0;border-bottom-color:#1565c0;font-weight:600;}
+.section{display:none;padding:16px;}.section.active{display:block;}
+.bar{border-radius:12px;padding:12px 16px;font-size:13px;font-weight:500;margin-bottom:12px;display:none;}
 .bar.s{background:#e8f5e9;color:#2e7d32;}
-.bar.w{background:#fff8e1;color:#e65100;}
-.bar.d{background:#ffebee;color:#c62828;}
+.bar.e{background:#ffebee;color:#c62828;}
 .bar.i{background:#e3f2fd;color:#1565c0;}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
-.badge.dept{background:#e3f2fd;color:#1565c0;}
-.badge.team{background:#f5f5f5;color:#555;border:1px solid #ddd;}
-.sbadge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
-.sbadge.ok{background:#e8f5e9;color:#2e7d32;}
-.sbadge.late{background:#fff8e1;color:#e65100;}
-.sbadge.absent{background:#ffebee;color:#c62828;}
-.upload-zone{border:2px dashed #ccc;border-radius:16px;padding:1.5rem;text-align:center;cursor:pointer;background:#fafafa;}
-.upload-zone:hover{background:#f0f4ff;border-color:#90a4e8;}
 .btn{display:block;width:100%;margin-top:10px;padding:13px;font-size:14px;font-weight:600;border-radius:12px;border:none;cursor:pointer;font-family:inherit;}
 .btn.blue{background:#1976d2;color:#fff;}
-.btn.outline{background:#fff;color:#1976d2;border:1.5px solid #1976d2;}
-.btn.gray{background:#f0f0f0;color:#555;}
 .btn.green{background:#2e7d32;color:#fff;}
+.btn.red{background:#c62828;color:#fff;}
+.btn.orange{background:#e65100;color:#fff;}
+.btn.purple{background:#7b1fa2;color:#fff;}
+.btn.gray{background:#f0f0f0;color:#555;}
 .btn:hover{opacity:.9;}
-.hint{margin-top:8px;background:#f5f5f5;border-radius:10px;padding:10px 14px;font-size:12px;color:#666;font-family:monospace;}
-
-/* 부서별 그룹 표시 */
-.dept-group{background:#fff;border-radius:14px;border:1px solid #eee;margin-top:12px;overflow:hidden;}
-.dept-header{background:#1976d2;color:#fff;padding:10px 16px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;}
-.dept-count{background:rgba(255,255,255,0.25);padding:2px 8px;border-radius:12px;font-size:11px;}
-.team-group{border-bottom:1px solid #f0f0f0;}
-.team-group:last-child{border-bottom:none;}
-.team-header{background:#f5f7fa;padding:8px 16px;font-size:12px;font-weight:500;color:#555;display:flex;justify-content:space-between;align-items:center;}
-.team-count{font-size:11px;color:#888;font-weight:400;}
-.member-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #fafafa;font-size:13px;}
-.member-row:last-child{border-bottom:none;}
-.member-name{font-weight:500;color:#1a1a1a;}
-.member-info{font-size:11px;color:#888;font-family:monospace;}
-.member-pin{background:#e3f2fd;color:#1565c0;font-family:monospace;font-weight:600;font-size:11px;padding:2px 8px;border-radius:6px;}
-
-/* 위치 설정 */
-.loc-box{background:#fff;border-radius:14px;border:1px solid #eee;padding:16px;margin-bottom:12px;}
-.loc-title{font-size:13px;font-weight:600;margin-bottom:10px;color:#1a1a1a;}
+/* 통계 */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:#fff;border-radius:14px;padding:14px 10px;text-align:center;border:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.stat-label{font-size:11px;color:#888;margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:700;}
+.stat-value.ok{color:#2e7d32;}
+.stat-value.absent{color:#c62828;}
+/* 카드 */
+.card{background:#fff;border-radius:12px;border:1px solid #eee;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.card-name{font-size:14px;font-weight:600;}
+.card-meta{font-size:11px;color:#888;margin-bottom:4px;}
+.card-task{font-size:12px;color:#1565c0;background:#e3f2fd;border-radius:8px;padding:5px 10px;margin-top:6px;line-height:1.5;}
+.card-actions{display:flex;gap:6px;margin-top:8px;}
+.action-btn{flex:1;padding:7px 8px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;color:#555;text-align:center;}
+.action-btn.approve{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;}
+.action-btn.reject{background:#ffebee;color:#c62828;border-color:#ef9a9a;}
+.action-btn.edit{background:#e3f2fd;color:#1565c0;border-color:#90caf9;}
+.action-btn.del{background:#fff8e1;color:#e65100;border-color:#ffe082;}
+/* 배지 */
+.sbadge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+.sbadge.ok{background:#e8f5e9;color:#2e7d32;}
+.sbadge.absent{background:#ffebee;color:#c62828;}
+.sbadge.pending{background:#fff8e1;color:#e65100;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#e3f2fd;color:#1565c0;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;}
+.status-dot.a{background:#2e7d32;}
+.status-dot.p{background:#e65100;}
+.status-dot.r{background:#c62828;}
+/* 필터/검색 */
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.filter-row select{flex:1;font-size:13px;padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;font-family:inherit;min-width:80px;}
+.search-box{margin-bottom:12px;}
+.search-input{width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:13px;font-family:inherit;outline:none;}
+.search-input:focus{border-color:#1976d2;}
+/* QR */
+.qr-wrap{background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid #eee;}
+#qrDiv{display:inline-block;padding:16px;background:#fff;border:1px solid #eee;border-radius:12px;margin:12px 0;}
+.qr-url{font-size:11px;color:#aaa;word-break:break-all;}
+.qr-btns{display:flex;gap:8px;justify-content:center;margin-top:14px;}
+.qr-btn{padding:10px 18px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;}
+/* 위치 */
+.loc-card{background:#fff;border-radius:14px;border:1px solid #eee;padding:16px;margin-bottom:12px;}
+.loc-title{font-size:13px;font-weight:600;margin-bottom:10px;}
 .loc-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
 .loc-label{font-size:12px;color:#888;min-width:80px;}
 .loc-input{flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;}
 .radius-wrap{display:flex;align-items:center;gap:10px;}
 .radius-wrap input[type=range]{flex:1;}
 .radius-val{font-size:13px;font-weight:600;color:#1976d2;min-width:60px;}
-.loc-val{font-size:13px;font-family:monospace;color:#1a1a1a;flex:1;}
-
-/* QR */
-.qr-card{background:#fff;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid #eee;}
-#qrDiv{display:inline-block;padding:16px;background:#fff;border:1px solid #eee;border-radius:12px;margin:12px 0;}
-
-/* 출근 체크 */
-.check-full{min-height:calc(100vh - 110px);display:flex;flex-direction:column;}
-.state-gps{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:2rem;}
-.gps-icon{font-size:56px;animation:pulse 1.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
-.state-loc-err{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:2rem;flex:1;}
-.state-pin{display:none;}
-.pin-header{background:linear-gradient(135deg,#1976d2,#1565c0);color:#fff;padding:18px;border-radius:16px;margin-bottom:14px;text-align:center;}
-.pin-header h2{font-size:18px;font-weight:600;margin-bottom:4px;}
-.pin-header p{font-size:12px;opacity:.85;}
-.pin-dots{display:flex;gap:14px;justify-content:center;margin:14px 0;}
-.pin-dot{width:18px;height:18px;border-radius:50%;background:#eee;border:2px solid #ddd;}
-.pin-dot.filled{background:#1976d2;border-color:#1976d2;}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.key{background:#fff;border:1px solid #eee;border-radius:14px;padding:18px 0;font-size:22px;font-weight:500;cursor:pointer;text-align:center;color:#1a1a1a;font-family:inherit;-webkit-tap-highlight-color:transparent;}
-.key:active{background:#e3f2fd;transform:scale(.95);}
-.key.del{font-size:16px;color:#888;}
-.key.ok{background:#1976d2;color:#fff;border-color:#1976d2;font-size:15px;font-weight:600;}
-
-/* 사무 내용 입력 */
-.state-task{display:none;padding:0;}
-.task-header{background:linear-gradient(135deg,#2e7d32,#388e3c);color:#fff;padding:18px;border-radius:16px;margin-bottom:14px;text-align:center;}
-.task-header h2{font-size:18px;font-weight:600;margin-bottom:4px;}
-.task-header p{font-size:13px;opacity:.9;}
-.task-emp-info{background:#fff;border-radius:14px;border:1px solid #eee;padding:14px;margin-bottom:12px;}
-.task-emp-name{font-size:18px;font-weight:700;margin-bottom:4px;}
-.task-emp-sub{font-size:12px;color:#888;}
-.task-emp-time{margin-top:8px;font-size:13px;color:#1976d2;font-weight:500;}
-.task-textarea{width:100%;min-height:120px;border:1.5px solid #ddd;border-radius:12px;padding:14px;font-size:14px;font-family:inherit;resize:vertical;outline:none;}
-.task-textarea:focus{border-color:#2e7d32;}
-.task-presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.preset-chip{padding:6px 14px;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:20px;font-size:12px;cursor:pointer;color:#555;font-family:inherit;}
-.preset-chip:hover{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
-
-/* 완료 */
-.state-done{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;gap:10px;}
-.done-icon{font-size:64px;animation:pop .4s cubic-bezier(.34,1.56,.64,1);}
-@keyframes pop{from{transform:scale(0);}to{transform:scale(1);}}
-.done-name{font-size:24px;font-weight:700;}
-.done-info{font-size:13px;color:#888;line-height:1.8;}
-.done-status{font-size:14px;font-weight:600;padding:8px 24px;border-radius:20px;display:inline-block;}
-.done-status.ok{background:#e8f5e9;color:#2e7d32;}
-.done-status.late{background:#fff8e1;color:#e65100;}
-.done-task{background:#f5f7fa;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:12px;color:#555;text-align:left;line-height:1.6;max-width:320px;}
-
-.state-err{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;gap:10px;}
-
-/* 출근부 */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
-.stat{background:#fff;border-radius:12px;padding:12px 8px;text-align:center;border:1px solid #eee;}
-.stat-l{font-size:11px;color:#888;margin-bottom:4px;}
-.stat-v{font-size:22px;font-weight:700;}
-.stat-v.ok{color:#2e7d32;}
-.stat-v.late{color:#e65100;}
-.stat-v.absent{color:#c62828;}
-.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.filter-row select{flex:1;font-size:13px;padding:8px 10px;border-radius:10px;border:1px solid #ddd;background:#fff;font-family:inherit;min-width:80px;}
-
-.att-card{background:#fff;border-radius:12px;border:1px solid #eee;padding:12px 14px;margin-bottom:8px;}
-.att-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.att-card-name{font-size:14px;font-weight:600;}
-.att-card-meta{font-size:11px;color:#888;margin-bottom:4px;}
-.att-card-task{font-size:12px;color:#1565c0;background:#e3f2fd;border-radius:8px;padding:6px 10px;margin-top:6px;line-height:1.5;}
-
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* 기록 */
+.history-card{background:#fff;border-radius:12px;border:1px solid #eee;padding:14px;margin-bottom:10px;}
+.history-date{font-size:14px;font-weight:600;color:#1976d2;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.history-stat{font-size:11px;color:#888;}
+.history-btns{display:flex;gap:6px;}
+.history-btn{flex:1;padding:7px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;}
+.history-btn.danger{color:#c62828;border-color:#ffcdd2;}
+/* 설정 */
+.setting-card{background:#fff;border-radius:12px;border:1px solid #eee;padding:14px 16px;margin-bottom:10px;}
+.setting-title{font-size:13px;font-weight:600;margin-bottom:6px;}
+.setting-desc{font-size:12px;color:#888;margin-bottom:8px;line-height:1.6;}
+.notice-textarea{width:100%;min-height:100px;border:1.5px solid #ddd;border-radius:10px;padding:12px;font-size:14px;font-family:inherit;resize:vertical;outline:none;}
+.notice-textarea:focus{border-color:#1976d2;}
+/* 모달 */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:20px;width:90%;max-width:400px;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:14px;}
+.modal-input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:8px;}
+.modal-select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:8px;background:#fff;}
+.modal-btns{display:flex;gap:8px;margin-top:10px;}
+.modal-btns .btn{margin-top:0;flex:1;}
+/* 공지 미출석 */
+.absent-row{background:#fff;border-radius:10px;border:1px solid #eee;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
 </style>
 </head>
 <body>
 <header>
-  <h1>출근 체크 시스템</h1>
-  <small id="hCount" style="font-size:12px;color:#888;">0명</small>
+  <div>
+    <h1>📋 출결 관리 시스템</h1>
+    <div class="header-sub" id="todayHeader">관리자 전용</div>
+  </div>
+  <span class="admin-badge">👨‍💼 박용호</span>
 </header>
 <div class="app">
   <div class="tabs">
-    <button class="tab active" id="tb-reg" onclick="go('reg')">① 직원등록</button>
-    <button class="tab" id="tb-loc" onclick="go('loc')">② 위치설정</button>
-    <button class="tab" id="tb-qr"  onclick="go('qr')">③ QR출력</button>
-    <button class="tab" id="tb-chk" onclick="go('chk')">④ 출근체크</button>
-    <button class="tab" id="tb-att" onclick="go('att')">⑤ 출근부</button>
+    <button class="tab active" id="tb-dash" onclick="go('dash')">📊 현황</button>
+    <button class="tab" id="tb-att"  onclick="go('att')">📋 출근부</button>
+    <button class="tab" id="tb-mem"  onclick="go('mem')">👥 직원</button>
+    <button class="tab" id="tb-qr"   onclick="go('qr')">🔲 QR</button>
+    <button class="tab" id="tb-his"  onclick="go('his')">📅 기록</button>
+    <button class="tab" id="tb-cfg"  onclick="go('cfg')">⚙️ 설정</button>
   </div>
 
-  <!-- ① 직원 등록 -->
-  <div class="section active" id="tab-reg">
-    <div id="b1" class="bar s"></div>
-    <div class="upload-zone" onclick="document.getElementById('fi').click()">
-      <div style="font-size:26px;margin-bottom:6px;">📂</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:3px;">CSV 파일 업로드</div>
-      <div style="font-size:12px;color:#888;">부서, 팀, 이름, 전화번호, PIN</div>
+  <!-- 📊 현황 -->
+  <div class="section active" id="tab-dash">
+    <div id="b-dash" class="bar s"></div>
+    <div style="font-size:12px;color:#888;margin-bottom:10px;" id="dashDate"></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">전체</div><div class="stat-value" id="dTotal">0</div></div>
+      <div class="stat-card"><div class="stat-label">출석</div><div class="stat-value ok" id="dOk">0</div></div>
+      <div class="stat-card"><div class="stat-label">미출석</div><div class="stat-value absent" id="dAbsent">0</div></div>
     </div>
-    <input type="file" id="fi" accept=".csv,.txt" style="display:none" onchange="handleFile(event)">
-    <button class="btn blue" onclick="loadBuiltin()">기본 직원 21명 불러오기</button>
-    <button class="btn outline" onclick="downloadCSV()">📥 CSV 샘플 다운로드</button>
-    <div class="hint">예시: 개발부,프론트팀,김민준,01012341001,1234</div>
-    <div id="empList"></div>
-  </div>
-
-  <!-- ② 위치 설정 -->
-  <div class="section" id="tab-loc">
-    <div id="b2" class="bar s"></div>
-    <div class="bar i" style="display:block;margin-bottom:12px;">사무실 위치를 설정하세요. 이 반경 안에서만 출근이 허용됩니다.</div>
-    <div class="loc-box">
-      <div class="loc-title">📍 사무실 위치</div>
-      <div class="loc-row">
-        <div class="loc-label">위도</div>
-        <input class="loc-input" type="number" id="offLat" placeholder="35.8714" step="0.0001">
-      </div>
-      <div class="loc-row">
-        <div class="loc-label">경도</div>
-        <input class="loc-input" type="number" id="offLng" placeholder="128.6014" step="0.0001">
-      </div>
-      <button class="btn blue" onclick="getMyLoc()" style="margin-top:8px;">📡 현재 위치를 사무실로 설정</button>
+    <div id="pendingSection" style="display:none;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#e65100;margin-bottom:8px;">⏳ 승인 대기</div>
+      <div id="pendingList"></div>
     </div>
-    <div class="loc-box">
-      <div class="loc-title">📏 허용 반경</div>
-      <div class="radius-wrap">
-        <input type="range" id="radiusSlider" min="50" max="500" value="100" step="50" oninput="updateRadius()">
-        <div class="radius-val" id="radiusVal">100m</div>
-      </div>
-    </div>
-    <button class="btn blue" onclick="saveLoc()">💾 위치 저장</button>
-    <button class="btn gray" onclick="skipLoc()" style="margin-top:8px;">위치 확인 없이 사용</button>
-  </div>
-
-  <!-- ③ QR 출력 -->
-  <div class="section" id="tab-qr">
-    <div class="bar i" style="display:block;margin-bottom:12px;">출입구에 부착하세요.<br>스캔 → 위치확인 → PIN → 사무내용 → 완료!</div>
-    <div class="qr-card">
-      <div style="font-size:15px;font-weight:600;">출근 체크 QR코드</div>
-      <div id="qrDiv"></div>
-      <div style="font-size:11px;color:#bbb;word-break:break-all;" id="qrUrlTxt"></div>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;">
-        <button onclick="printQR()" style="padding:10px 18px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;">🖨 인쇄</button>
-        <button onclick="dlQR()" style="padding:10px 18px;border-radius:10px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;">💾 저장</button>
-      </div>
+    <div style="font-size:13px;font-weight:600;color:#c62828;margin-bottom:8px;" id="absentTitle"></div>
+    <div id="absentList"></div>
+    <button class="btn green" onclick="downloadToday()" style="margin-top:16px;">📥 오늘 엑셀 다운로드</button>
+    <button class="btn purple" onclick="saveDayToHistory()">💾 오늘 마감</button>
+    <div style="margin-top:8px;background:#fff3e0;border-radius:8px;padding:10px 12px;font-size:11px;color:#e65100;line-height:1.6;">
+      💡 매일 <b>엑셀 다운로드</b> 후 <b>오늘 마감</b> 클릭하세요
     </div>
   </div>
 
-  <!-- ④ 출근 체크 -->
-  <div class="section" id="tab-chk">
-    <div class="check-full" id="checkFull">
-
-      <div class="state-gps" id="stateGps">
-        <div class="gps-icon">📡</div>
-        <div style="font-size:15px;font-weight:500;">위치 확인 중...</div>
-        <div style="font-size:13px;color:#888;">위치 권한을 허용해 주세요</div>
-      </div>
-
-      <div class="state-loc-err" id="stateLocErr">
-        <div style="font-size:52px;">📵</div>
-        <div style="font-size:16px;font-weight:500;color:#c62828;" id="locErrMsg">위치를 벗어났습니다</div>
-        <div style="font-size:13px;color:#888;" id="locErrSub"></div>
-        <button class="btn blue" onclick="startGPS()" style="width:auto;padding:12px 28px;margin-top:8px;">다시 시도</button>
-        <button class="btn gray" onclick="showPin()" style="width:auto;padding:10px 20px;font-size:12px;">위치 무시하고 진행</button>
-      </div>
-
-      <div class="state-pin" id="statePin">
-        <div class="pin-header">
-          <h2>PIN 입력</h2>
-          <p id="pinLocInfo">위치 확인 완료</p>
-        </div>
-        <div style="text-align:center;margin-bottom:6px;font-size:13px;color:#888;">본인 PIN 4자리</div>
-        <div class="pin-dots">
-          <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
-          <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
-        </div>
-        <div class="numpad">
-          <button class="key" onclick="pk('1')">1</button>
-          <button class="key" onclick="pk('2')">2</button>
-          <button class="key" onclick="pk('3')">3</button>
-          <button class="key" onclick="pk('4')">4</button>
-          <button class="key" onclick="pk('5')">5</button>
-          <button class="key" onclick="pk('6')">6</button>
-          <button class="key" onclick="pk('7')">7</button>
-          <button class="key" onclick="pk('8')">8</button>
-          <button class="key" onclick="pk('9')">9</button>
-          <button class="key del" onclick="pd()">⌫</button>
-          <button class="key" onclick="pk('0')">0</button>
-          <button class="key ok" onclick="pc()">확인</button>
-        </div>
-        <div id="pinErr" style="text-align:center;font-size:13px;color:#c62828;margin-top:10px;min-height:20px;"></div>
-      </div>
-
-      <!-- 사무 내용 입력 -->
-      <div class="state-task" id="stateTask">
-        <div class="task-header">
-          <h2>📝 오늘 사무 내용</h2>
-          <p>오늘 처리할 업무를 입력하세요</p>
-        </div>
-        <div class="task-emp-info">
-          <div class="task-emp-name" id="taskName"></div>
-          <div class="task-emp-sub" id="taskSub"></div>
-          <div class="task-emp-time" id="taskTime"></div>
-        </div>
-        <textarea class="task-textarea" id="taskInput" placeholder="예시:&#10;- 오전 회의 자료 정리&#10;- 거래처 미팅 준비&#10;- 보고서 작성"></textarea>
-        <div class="task-presets">
-          <button class="preset-chip" onclick="addPreset('일반 업무')">일반 업무</button>
-          <button class="preset-chip" onclick="addPreset('회의 참석')">회의 참석</button>
-          <button class="preset-chip" onclick="addPreset('외근')">외근</button>
-          <button class="preset-chip" onclick="addPreset('교육 참여')">교육 참여</button>
-          <button class="preset-chip" onclick="addPreset('보고서 작성')">보고서 작성</button>
-        </div>
-        <button class="btn green" onclick="submitTask()" style="margin-top:14px;">✅ 출근 완료</button>
-        <button class="btn gray" onclick="skipTask()" style="margin-top:8px;">사무 내용 없이 출근</button>
-      </div>
-
-      <div class="state-done" id="stateDone">
-        <div class="done-icon" id="doneIcon">✅</div>
-        <div class="done-name" id="doneName"></div>
-        <div class="done-info" id="doneInfo"></div>
-        <div class="done-status" id="doneStatus"></div>
-        <div class="done-task" id="doneTask" style="display:none;"></div>
-        <button class="btn blue" onclick="startGPS()" style="margin-top:14px;">다음 사람 출근</button>
-      </div>
-
-      <div class="state-err" id="stateErr">
-        <div style="font-size:52px;">❌</div>
-        <div style="font-size:16px;font-weight:500;color:#c62828;" id="errMsg"></div>
-        <div style="font-size:13px;color:#888;" id="errSub"></div>
-        <button class="btn blue" onclick="showPin()" style="margin-top:12px;">다시 시도</button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ⑤ 출근부 -->
+  <!-- 📋 출근부 -->
   <div class="section" id="tab-att">
-    <div id="b5" class="bar s"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-      <div style="font-size:15px;font-weight:600;" id="attTitle">출근부</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="font-size:11px;color:#888;" id="attDate"></div>
-        <button onclick="resetAtt()" style="padding:5px 12px;border-radius:8px;border:1px solid #ffcdd2;color:#c62828;background:none;font-size:12px;cursor:pointer;font-family:inherit;">초기화</button>
-      </div>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="stat-l">전체</div><div class="stat-v" id="sT">0</div></div>
-      <div class="stat"><div class="stat-l">정상</div><div class="stat-v ok" id="sO">0</div></div>
-      <div class="stat"><div class="stat-l">지각</div><div class="stat-v late" id="sL">0</div></div>
-      <div class="stat"><div class="stat-l">미출근</div><div class="stat-v absent" id="sA">0</div></div>
+    <div id="b-att" class="bar s"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:600;" id="attTitle">오늘 출근부</div>
+      <div style="font-size:11px;color:#888;" id="attDate"></div>
     </div>
     <div class="filter-row">
-      <select id="fAD" onchange="renderAtt()"><option value="">전체 부서</option></select>
-      <select id="fAT" onchange="renderAtt()"><option value="">전체 팀</option></select>
-      <select id="fAS" onchange="renderAtt()">
-        <option value="">전체 상태</option>
-        <option value="ok">정상</option>
-        <option value="late">지각</option>
-        <option value="absent">미출근</option>
+      <select id="fDept" onchange="renderAtt()"><option value="">전체 부서</option></select>
+      <select id="fStatus" onchange="renderAtt()">
+        <option value="">전체</option><option value="ok">출석</option><option value="absent">미출석</option>
       </select>
     </div>
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchName" placeholder="이름 검색..." oninput="renderAtt()">
+    </div>
     <div id="attList"></div>
-    <div id="attEmpty" style="display:none;text-align:center;padding:2rem;font-size:13px;color:#999;">아직 출근한 직원이 없습니다.</div>
+    <div id="attEmpty" style="display:none;text-align:center;padding:2rem;font-size:13px;color:#999;">출석 기록이 없습니다.</div>
+  </div>
+
+  <!-- 👥 직원 관리 -->
+  <div class="section" id="tab-mem">
+    <div id="b-mem" class="bar s"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:600;">직원 관리</div>
+      <button onclick="openAddModal()" style="padding:7px 14px;background:#1976d2;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;">+ 추가</button>
+    </div>
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchMem" placeholder="이름 검색..." oninput="renderMembers()">
+    </div>
+    <div class="filter-row">
+      <select id="fMemDept" onchange="renderMembers()"><option value="">전체 부서</option></select>
+      <select id="fMemStatus" onchange="renderMembers()">
+        <option value="">전체 상태</option><option value="승인">✅ 승인</option><option value="승인대기">⏳ 대기</option>
+      </select>
+    </div>
+    <div id="memberList"></div>
+    <div id="memberEmpty" style="display:none;text-align:center;padding:2rem;font-size:13px;color:#999;">등록된 직원이 없습니다.</div>
+  </div>
+
+  <!-- 🔲 QR -->
+  <div class="section" id="tab-qr">
+    <div class="bar i" style="display:block;margin-bottom:12px;">직원이 이 QR을 스캔하면 텔레그램 봇으로 연결됩니다!</div>
+    <div class="qr-wrap">
+      <div style="font-size:15px;font-weight:600;">출석 체크 QR</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">@QR_SnapBot</div>
+      <div id="qrDiv"></div>
+      <div class="qr-url" id="qrUrl"></div>
+      <div class="qr-btns">
+        <button class="qr-btn" onclick="printQR()">🖨 인쇄</button>
+        <button class="qr-btn" onclick="dlQR()">💾 저장</button>
+      </div>
+    </div>
+    <div style="margin-top:14px;background:#e8f5e9;border-radius:12px;padding:14px;font-size:12px;color:#2e7d32;line-height:1.8;">
+      ✅ <b>출입구에 부착하세요!</b><br>
+      직원 스캔 → 텔레그램 봇 열림<br>
+      처음 1회: 부서·직책·이름 등록<br>
+      이후: 업무 내용 선택 → 출석 완료
+    </div>
+  </div>
+
+  <!-- 📅 기록 -->
+  <div class="section" id="tab-his">
+    <div id="b-his" class="bar s"></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:12px;">📅 누적 출석 기록</div>
+    <button class="btn green" onclick="downloadAllHistory()">📥 전체 기록 엑셀 다운로드</button>
+    <div id="historyList" style="margin-top:14px;"></div>
+    <div id="historyEmpty" style="text-align:center;padding:2rem;font-size:13px;color:#999;display:none;">아직 마감된 기록이 없습니다.</div>
+  </div>
+
+  <!-- ⚙️ 설정 -->
+  <div class="section" id="tab-cfg">
+    <div id="b-cfg" class="bar s"></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:14px;">⚙️ 시스템 설정</div>
+    <div class="loc-card">
+      <div class="loc-title">📍 성전 위치 설정</div>
+      <div class="loc-row"><div class="loc-label">위도</div><input class="loc-input" type="number" id="offLat" placeholder="35.8714" step="0.0001"></div>
+      <div class="loc-row"><div class="loc-label">경도</div><input class="loc-input" type="number" id="offLng" placeholder="128.6014" step="0.0001"></div>
+      <button class="btn blue" onclick="getMyLoc()" style="margin-top:8px;">📡 현재 위치 사용</button>
+      <div style="margin-top:10px;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">📏 허용 반경</div>
+        <div class="radius-wrap">
+          <input type="range" id="radiusSlider" min="50" max="500" value="100" step="50" oninput="updateRadius()">
+          <div class="radius-val" id="radiusVal">100m</div>
+        </div>
+      </div>
+      <button class="btn blue" onclick="saveLoc()" style="margin-top:10px;">💾 위치 저장</button>
+      <button class="btn gray" onclick="skipLoc()" style="margin-top:8px;">위치 확인 없이 사용</button>
+    </div>
+    <div class="setting-card">
+      <div class="setting-title">📢 전체 공지 발송</div>
+      <div class="setting-desc">모든 직원에게 텔레그램 메시지를 발송합니다.</div>
+      <textarea class="notice-textarea" id="noticeText" placeholder="공지 내용 입력...&#10;예시: 오늘 저녁 7시 전체 회의입니다."></textarea>
+      <button class="btn orange" onclick="sendNotice()" style="margin-top:8px;">📨 전체 발송</button>
+    </div>
+    <div class="setting-card">
+      <div class="setting-title">📊 시스템 정보</div>
+      <div style="font-size:12px;color:#888;line-height:2.2;">
+        🤖 봇: @QR_SnapBot<br>
+        👨‍💼 관리자: 박용호 (116240819)<br>
+        🌐 웹: cjmart1984-art.github.io/attendance
+      </div>
+    </div>
+    <button class="btn red" onclick="resetAll()" style="margin-top:6px;">⚠️ 전체 데이터 초기화</button>
+  </div>
+</div>
+
+<!-- 직원 추가/수정 모달 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">직원 추가</div>
+    <input type="hidden" id="editIdx">
+    <input type="text" class="modal-input" id="editName" placeholder="이름">
+    <select class="modal-select" id="editDept" onchange="updateEditPositions()">
+      <option value="">부서 선택</option>
+    </select>
+    <select class="modal-select" id="editPosition"><option value="">직책 선택</option></select>
+    <select class="modal-select" id="editStatus">
+      <option value="승인">✅ 승인</option>
+      <option value="승인대기">⏳ 승인대기</option>
+      <option value="거절">❌ 거절</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn gray" onclick="closeModal()">취소</button>
+      <button class="btn blue" onclick="saveMember()">저장</button>
+    </div>
   </div>
 </div>
 
 <script>
-var EMP=[], ATT={}, PIN_BUF='', CURRENT_EMP=null;
+var EMP=[],ATT={},HISTORY=[],EDIT_IDX=-1;
 var OFFICE={lat:null,lng:null,radius:100,useGps:true};
-
+var DEPTS=['임원진','과장단','임원','지역장','부서서기','교관','팀장','구역장'];
+var POSITIONS={
+  '임원진':['회장','총무','서기','회계'],
+  '과장단':['건설과장','교육과장','문화과장','보건후생복지과장','봉사교통과장',
+            '상담심방과장','섭외과장','정보통신과장','찬양과장','체육과장','홍보과장'],
+  '임원':['동대구1','동대구2','대명1','대명2','중부1','중부2','남부1','남부2'],
+  '지역장':['동대구 지역','대명 지역','중부 지역','남부 지역'],
+  '부서서기':['동대구1','동대구2','대명1','대명2','중부1','중부2','남부1','남부2'],
+  '교관':['복음방교관','섭외교관'],
+  '팀장':['팀장'],
+  '구역장':['1팀','2팀','3팀','4팀','5팀']
+};
 var BUILTIN=[
-  ['개발부','프론트엔드팀','김민준','01012341001','1001'],
-  ['개발부','프론트엔드팀','이서연','01012341002','1002'],
-  ['개발부','백엔드팀','박지호','01012341003','1003'],
-  ['개발부','백엔드팀','최유진','01012341004','1004'],
-  ['개발부','백엔드팀','정현우','01012341005','1005'],
-  ['영업부','국내영업팀','강지수','01012341006','1006'],
-  ['영업부','국내영업팀','윤서준','01012341007','1007'],
-  ['영업부','해외영업팀','임나연','01012341008','1008'],
-  ['영업부','해외영업팀','한도윤','01012341009','1009'],
-  ['인사부','채용팀','조하은','01012341010','1010'],
-  ['인사부','채용팀','신재원','01012341011','1011'],
-  ['인사부','교육팀','오수아','01012341012','1012'],
-  ['인사부','교육팀','배민성','01012341013','1013'],
-  ['기획부','전략팀','권예진','01012341014','1014'],
-  ['기획부','전략팀','문태양','01012341015','1015'],
-  ['기획부','마케팅팀','노지아','01012341016','1016'],
-  ['기획부','마케팅팀','석현준','01012341017','1017'],
-  ['운영부','IT운영팀','황다은','01012341018','1018'],
-  ['운영부','IT운영팀','변성민','01012341019','1019'],
-  ['운영부','총무팀','류지원','01012341020','1020'],
-  ['운영부','IT운영팀','박용호','01020568897','8897']
+  ['임원진','회장','허주영'],['임원진','총무','천오국'],['임원진','서기','장현우'],['임원진','회계','강대철'],
+  ['과장단','건설과장','김승용'],['과장단','교육과장','이성수'],['과장단','문화과장','김성달'],
+  ['과장단','봉사교통과장','남문기'],['과장단','상담심방과장','송병규'],['과장단','섭외과장','노길환'],
+  ['과장단','정보통신과장','김영민'],['과장단','찬양과장','성태원'],['과장단','체육과장','김형래'],
+  ['과장단','홍보과장','김경수'],
+  ['임원','동대구1','송상훈'],['임원','동대구2','현상록'],['임원','대명1','이명기'],['임원','대명2','신재득'],
+  ['임원','중부1','표수덕'],['임원','중부2','김재민'],['임원','남부1','권덕준'],['임원','남부2','손범산'],
+  ['지역장','동대구 지역','이정익'],['지역장','대명 지역','손희열'],['지역장','중부 지역','서황범'],['지역장','남부 지역','정우신'],
+  ['부서서기','동대구1','이창렬'],['부서서기','동대구2','이재윤'],['부서서기','대명1','박길우'],['부서서기','대명2','서영식'],
+  ['부서서기','중부1','조은빛'],['부서서기','중부2','권연준'],['부서서기','남부1','이규진'],['부서서기','남부2','문경옥'],
+  ['교관','복음방교관','이왕희'],['교관','복음방교관','이용환'],['교관','복음방교관','김영식'],
+  ['교관','섭외교관','정봉식'],['교관','교관','배이한'],
+  ['팀장','팀장','이호진'],['팀장','팀장','장익진'],['팀장','팀장','송준호'],
+  ['구역장','1팀','박기범'],['구역장','2팀','김상희'],['구역장','3팀','조민환']
 ];
 
-function normPhone(p){return p?p.replace(/\D/g,''):'';}
-function fmtPhone(p){
-  var d=normPhone(p);
-  if(d.length===11)return d.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
-  if(d.length===10)return d.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
-  return p;
-}
+function pad(n){return n<10?'0'+n:''+n;}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtDate(){return new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});}
 
-function loadBuiltin(){
-  EMP=BUILTIN.map(function(r,i){return{id:i,dept:r[0],team:r[1],name:r[2],phone:normPhone(r[3]),pin:r[4]};});
-  ATT={};
-  toast('b1','직원 21명 불러오기 완료!');
-  renderEmp(); syncFilters();
-  document.getElementById('hCount').textContent=EMP.length+'명';
-}
-
-function handleFile(e){
-  var f=e.target.files[0]; if(!f)return;
-  var rd=new FileReader();
-  rd.onload=function(ev){parseCSV(ev.target.result);};
-  rd.readAsText(f,'UTF-8'); e.target.value='';
-}
-
-function parseCSV(txt){
-  var lines=txt.trim().split('\n').filter(function(l){return l.trim();});
-  var s=(lines[0].toLowerCase().indexOf('부서')>=0||lines[0].toLowerCase().indexOf('dept')>=0)?1:0;
-  EMP=[];
-  for(var i=s;i<lines.length;i++){
-    var p=lines[i].split(',').map(function(x){return x.trim().replace(/"/g,'');});
-    if(p[2])EMP.push({id:EMP.length,dept:p[0]||'미지정',team:p[1]||'미지정',name:p[2],phone:normPhone(p[3]||''),pin:p[4]||''});
+function init(){
+  loadFromStorage();
+  if(!EMP.length){
+    EMP=BUILTIN.map(function(r,i){return{id:i,dept:r[0],position:r[1],name:r[2],tgId:'',status:'승인'};});
+    saveEmpToStorage();
   }
-  ATT={};
-  toast('b1',EMP.length+'명 등록 완료!');
-  renderEmp(); syncFilters();
-  document.getElementById('hCount').textContent=EMP.length+'명';
+  syncFilters();
+  var today=fmtDate();
+  document.getElementById('todayHeader').textContent=today;
+  document.getElementById('dashDate').textContent=today;
+  document.getElementById('attDate').textContent=today;
+  document.getElementById('attTitle').textContent='오늘 출근부 ('+EMP.length+'명)';
+  renderDash();renderAtt();renderMembers();renderHistory();
+  makeQR();
 }
 
-function downloadCSV(){
-  var rows=['부서명,팀명,직원이름,전화번호,PIN'];
-  BUILTIN.forEach(function(r){rows.push(r.join(','));});
-  var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
-  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='직원명단_샘플.csv'; a.click();
+function renderDash(){
+  var total  =EMP.filter(function(e){return e.status==='승인';}).length;
+  var checked=Object.keys(ATT).length;
+  document.getElementById('dTotal').textContent =total;
+  document.getElementById('dOk').textContent    =checked;
+  document.getElementById('dAbsent').textContent=total-checked;
+  var pending=EMP.filter(function(e){return e.status==='승인대기';});
+  var ps=document.getElementById('pendingSection');
+  if(pending.length){
+    ps.style.display='';
+    document.getElementById('pendingList').innerHTML=pending.map(function(e){
+      return'<div class="card"><div class="card-top"><div><div class="card-name">'+e.name+'</div>'
+        +'<div class="card-meta">'+e.dept+' · '+e.position+'</div></div>'
+        +'<span class="sbadge pending">승인대기</span></div>'
+        +'<div class="card-actions">'
+        +'<div class="action-btn approve" onclick="quickApprove('+e.id+',true)">✅ 승인</div>'
+        +'<div class="action-btn reject" onclick="quickApprove('+e.id+',false)">❌ 거절</div>'
+        +'</div></div>';
+    }).join('');
+  } else {ps.style.display='none';}
+  var absentList=EMP.filter(function(e){return e.status==='승인'&&!ATT[e.id];});
+  document.getElementById('absentTitle').textContent=absentList.length?'❌ 미출석 '+absentList.length+'명':'';
+  document.getElementById('absentList').innerHTML=absentList.length
+    ?absentList.map(function(e){
+      return'<div class="absent-row">'
+        +'<div><div style="font-size:13px;font-weight:500;">'+e.name+'</div>'
+        +'<div style="font-size:11px;color:#888;">'+e.dept+' · '+e.position+'</div></div>'
+        +'<span class="sbadge absent">미출석</span></div>';
+    }).join('')
+    :'<div style="text-align:center;padding:1rem;font-size:13px;color:#2e7d32;">✅ 전원 출석!</div>';
 }
 
-/* 부서/팀 별 그룹화 렌더링 */
-function renderEmp(){
-  var el=document.getElementById('empList');
-  if(!EMP.length){el.innerHTML='';return;}
-
-  // 부서 → 팀 → 직원 구조로 그룹화
-  var grouped={};
-  EMP.forEach(function(e){
-    if(!grouped[e.dept])grouped[e.dept]={};
-    if(!grouped[e.dept][e.team])grouped[e.dept][e.team]=[];
-    grouped[e.dept][e.team].push(e);
-  });
-
-  var html='<div style="font-size:12px;color:#888;margin-top:14px;margin-bottom:6px;">부서·팀별 직원 목록</div>';
-  Object.keys(grouped).forEach(function(dept){
-    var deptCount=0;
-    Object.values(grouped[dept]).forEach(function(t){deptCount+=t.length;});
-    html+='<div class="dept-group">';
-    html+='<div class="dept-header">🏢 '+dept+' <span class="dept-count">'+deptCount+'명</span></div>';
-    Object.keys(grouped[dept]).forEach(function(team){
-      var members=grouped[dept][team];
-      html+='<div class="team-group">';
-      html+='<div class="team-header">👥 '+team+' <span class="team-count">'+members.length+'명</span></div>';
-      members.forEach(function(m){
-        html+='<div class="member-row">'
-          +'<div><div class="member-name">'+m.name+'</div>'
-          +'<div class="member-info">'+fmtPhone(m.phone)+'</div></div>'
-          +'<div class="member-pin">PIN '+m.pin+'</div>'
-          +'</div>';
-      });
-      html+='</div>';
-    });
-    html+='</div>';
-  });
-  el.innerHTML=html;
-}
-
-function syncFilters(){
-  var depts=[],teams=[];
-  EMP.forEach(function(e){
-    if(depts.indexOf(e.dept)<0)depts.push(e.dept);
-    if(teams.indexOf(e.team)<0)teams.push(e.team);
-  });
-  document.getElementById('fAD').innerHTML='<option value="">전체 부서</option>'+depts.map(function(d){return'<option>'+d+'</option>';}).join('');
-  document.getElementById('fAT').innerHTML='<option value="">전체 팀</option>'+teams.map(function(t){return'<option>'+t+'</option>';}).join('');
-}
-
-/* 위치 설정 */
-function getMyLoc(){
-  if(!navigator.geolocation){alert('GPS를 지원하지 않습니다.');return;}
-  navigator.geolocation.getCurrentPosition(function(pos){
-    document.getElementById('offLat').value=pos.coords.latitude.toFixed(6);
-    document.getElementById('offLng').value=pos.coords.longitude.toFixed(6);
-    toast('b2','현재 위치가 입력되었습니다! 저장을 누르세요.');
-  },function(){alert('위치를 가져올 수 없습니다.');});
-}
-function updateRadius(){
-  var v=document.getElementById('radiusSlider').value;
-  document.getElementById('radiusVal').textContent=v+'m';
-}
-function saveLoc(){
-  var lat=parseFloat(document.getElementById('offLat').value);
-  var lng=parseFloat(document.getElementById('offLng').value);
-  var r=parseInt(document.getElementById('radiusSlider').value);
-  if(isNaN(lat)||isNaN(lng)){alert('위도와 경도를 입력하세요.');return;}
-  OFFICE={lat:lat,lng:lng,radius:r,useGps:true};
-  toast('b2','위치 저장 완료!');
-}
-function skipLoc(){OFFICE.useGps=false;toast('b2','위치 확인 없이 사용합니다.');setTimeout(function(){go('qr');},800);}
-
-/* 출근 체크 흐름 */
-function showState(s){
-  document.getElementById('stateGps').style.display=s==='gps'?'flex':'none';
-  document.getElementById('stateLocErr').style.display=s==='locErr'?'flex':'none';
-  document.getElementById('statePin').style.display=s==='pin'?'block':'none';
-  document.getElementById('stateTask').style.display=s==='task'?'block':'none';
-  document.getElementById('stateDone').style.display=s==='done'?'flex':'none';
-  document.getElementById('stateErr').style.display=s==='err'?'flex':'none';
-}
-
-function startGPS(){
-  PIN_BUF=''; CURRENT_EMP=null;
-  showState('gps');
-  if(!OFFICE.useGps||OFFICE.lat===null){showPin();return;}
-  if(!navigator.geolocation){showPin();return;}
-  navigator.geolocation.getCurrentPosition(
-    function(pos){
-      var dist=calcDist(pos.coords.latitude,pos.coords.longitude,OFFICE.lat,OFFICE.lng);
-      if(dist<=OFFICE.radius){
-        document.getElementById('pinLocInfo').textContent='위치 확인 ✓ ('+Math.round(dist)+'m)';
-        showPin();
-      } else {
-        document.getElementById('locErrMsg').textContent='사무실에서 '+Math.round(dist)+'m 떨어져 있습니다';
-        document.getElementById('locErrSub').textContent='허용 반경: '+OFFICE.radius+'m';
-        showState('locErr');
-      }
-    },
-    function(){document.getElementById('pinLocInfo').textContent='위치 확인 생략';showPin();},
-    {timeout:8000,maximumAge:0}
-  );
-}
-
-function calcDist(lat1,lng1,lat2,lng2){
-  var R=6371000;
-  var dLat=(lat2-lat1)*Math.PI/180;
-  var dLng=(lng2-lng1)*Math.PI/180;
-  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
-        Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
-        Math.sin(dLng/2)*Math.sin(dLng/2);
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-function showPin(){
-  PIN_BUF=''; updateDots();
-  document.getElementById('pinErr').textContent='';
-  showState('pin');
-}
-
-function pk(k){
-  if(PIN_BUF.length>=4)return;
-  PIN_BUF+=k; updateDots();
-  if(PIN_BUF.length===4)setTimeout(pc,150);
-}
-function pd(){PIN_BUF=PIN_BUF.slice(0,-1);updateDots();}
-function updateDots(){for(var i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<PIN_BUF.length);}
-
-function pc(){
-  if(PIN_BUF.length<4){document.getElementById('pinErr').textContent='4자리를 모두 입력하세요';return;}
-  var matches=EMP.filter(function(e){return e.pin===PIN_BUF;});
-  if(!matches.length){
-    shake();
-    document.getElementById('pinErr').textContent='PIN이 일치하지 않습니다';
-    PIN_BUF=''; updateDots(); return;
-  }
-  var emp=matches[0];
-  if(ATT[emp.id]){
-    document.getElementById('errMsg').textContent=emp.name+' — 이미 출근 처리됨';
-    document.getElementById('errSub').textContent='출근 시간: '+ATT[emp.id].time;
-    showState('err'); return;
-  }
-  // PIN 통과 → 사무 내용 입력 화면
-  CURRENT_EMP=emp;
-  var now=new Date();
-  document.getElementById('taskName').textContent=emp.name;
-  document.getElementById('taskSub').textContent=emp.dept+' · '+emp.team;
-  document.getElementById('taskTime').textContent='⏰ '+now.toTimeString().slice(0,5)+' 도착';
-  document.getElementById('taskInput').value='';
-  showState('task');
-  setTimeout(function(){document.getElementById('taskInput').focus();},200);
-}
-
-function shake(){
-  var el=document.querySelector('.pin-dots');
-  el.style.animation='none';el.offsetHeight;el.style.animation='shake .3s';
-}
-
-/* 사무 내용 처리 */
-function addPreset(text){
-  var ta=document.getElementById('taskInput');
-  ta.value=ta.value?(ta.value+'\n- '+text):('- '+text);
-  ta.focus();
-}
-
-function submitTask(){
-  var task=document.getElementById('taskInput').value.trim();
-  finalizeAttendance(task);
-}
-
-function skipTask(){
-  finalizeAttendance('');
-}
-
-function finalizeAttendance(task){
-  var emp=CURRENT_EMP;
-  var now=new Date();
-  var mins=now.getHours()*60+now.getMinutes();
-  var t=now.toTimeString().slice(0,5);
-  var status=mins>9*60+10?'late':'ok';
-  ATT[emp.id]={dept:emp.dept,team:emp.team,name:emp.name,phone:emp.phone,time:t,status:status,task:task};
-  document.getElementById('doneIcon').textContent=status==='ok'?'✅':'⚠️';
-  document.getElementById('doneName').textContent=emp.name;
-  document.getElementById('doneInfo').innerHTML=emp.dept+' · '+emp.team+'<br>출근 시간: <b>'+t+'</b>';
-  var ds=document.getElementById('doneStatus');
-  ds.textContent=status==='ok'?'정상 출근':'지각';
-  ds.className='done-status '+status;
-  var dt=document.getElementById('doneTask');
-  if(task){
-    dt.style.display='';
-    dt.innerHTML='<b>📝 오늘 사무:</b><br>'+task.replace(/\n/g,'<br>');
-  } else {
-    dt.style.display='none';
-  }
-  showState('done');
-}
-
-/* 출근부 (카드 형태로 사무내용 함께 표시) */
 function renderAtt(){
-  var dept=document.getElementById('fAD').value;
-  var team=document.getElementById('fAT').value;
-  var st=document.getElementById('fAS').value;
-  var total=EMP.length,ok=0,late=0,proc=Object.keys(ATT).length;
-  Object.values(ATT).forEach(function(r){if(r.status==='ok')ok++;else if(r.status==='late')late++;});
-  document.getElementById('sT').textContent=total;
-  document.getElementById('sO').textContent=ok;
-  document.getElementById('sL').textContent=late;
-  document.getElementById('sA').textContent=total-proc;
-  document.getElementById('attTitle').textContent='출근부 ('+total+'명)';
-  document.getElementById('attDate').textContent=new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  var dept  =document.getElementById('fDept').value;
+  var status=document.getElementById('fStatus').value;
+  var search=document.getElementById('searchName').value.trim();
   var rows=EMP.map(function(e){
     var r=ATT[e.id];
-    return{dept:e.dept,team:e.team,name:e.name,phone:e.phone,time:r?r.time:'-',status:r?r.status:'absent',task:r?r.task:''};
-  }).filter(function(r){return(!dept||r.dept===dept)&&(!team||r.team===team)&&(!st||r.status===st);});
+    return{id:e.id,dept:e.dept,position:e.position,name:e.name,
+           time:r?r.time:'-',status:r?'ok':'absent',task:r?r.task:''};
+  }).filter(function(r){
+    return(!dept||r.dept===dept)&&(!status||r.status===status)&&(!search||r.name.indexOf(search)>=0);
+  });
   var list=document.getElementById('attList');
   var empty=document.getElementById('attEmpty');
   if(!rows.length){list.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
-  var lm={ok:'정상',late:'지각',absent:'미출근'};
+  var lm={ok:'출석',absent:'미출석'};
   list.innerHTML=rows.map(function(r){
-    var taskHtml=r.task?'<div class="att-card-task">📝 '+r.task.replace(/\n/g,'<br>')+'</div>':'';
-    return'<div class="att-card">'
-      +'<div class="att-card-top">'
-      +'<div class="att-card-name">'+r.name+'</div>'
+    var taskHtml=r.task?'<div class="card-task">📝 '+r.task+'</div>':'';
+    return'<div class="card"><div class="card-top">'
+      +'<div class="card-name">'+r.name+'</div>'
       +'<div style="display:flex;gap:8px;align-items:center;">'
       +'<span style="font-family:monospace;font-size:12px;color:#666;">'+r.time+'</span>'
       +'<span class="sbadge '+r.status+'">'+lm[r.status]+'</span>'
       +'</div></div>'
-      +'<div class="att-card-meta"><span class="badge dept" style="font-size:10px;">'+r.dept+'</span> <span class="badge team" style="font-size:10px;">'+r.team+'</span></div>'
-      +taskHtml
-      +'</div>';
+      +'<div class="card-meta"><span class="badge">'+r.dept+'</span> '+r.position+'</div>'
+      +taskHtml+'</div>';
   }).join('');
 }
 
-function resetAtt(){if(confirm('초기화할까요?')){ATT={};renderAtt();toast('b5','초기화 완료');}}
+function renderMembers(){
+  var dept  =document.getElementById('fMemDept').value;
+  var status=document.getElementById('fMemStatus').value;
+  var search=document.getElementById('searchMem').value.trim();
+  var rows=EMP.filter(function(e){
+    return(!dept||e.dept===dept)&&(!status||e.status===status)&&(!search||e.name.indexOf(search)>=0);
+  });
+  var list=document.getElementById('memberList');
+  var empty=document.getElementById('memberEmpty');
+  if(!rows.length){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=rows.map(function(e){
+    var dc=e.status==='승인'?'a':e.status==='승인대기'?'p':'r';
+    var today=ATT[e.id]?'🟢':'⚪';
+    var sc=e.status==='승인'?'ok':e.status==='승인대기'?'pending':'absent';
+    return'<div class="card"><div class="card-top">'
+      +'<div><div class="card-name"><span class="status-dot '+dc+'"></span>'+today+' '+e.name+'</div>'
+      +'<div class="card-meta">'+e.dept+' · '+e.position+(e.tgId?' · TG:'+e.tgId:'')+'</div></div>'
+      +'<span class="sbadge '+sc+'">'+e.status+'</span>'
+      +'</div><div class="card-actions">'
+      +(e.status==='승인대기'?'<div class="action-btn approve" onclick="quickApprove('+e.id+',true)">✅ 승인</div>':'')
+      +'<div class="action-btn edit" onclick="openEditModal('+e.id+')">✏️ 수정</div>'
+      +'<div class="action-btn del" onclick="deleteMember('+e.id+')">🗑 삭제</div>'
+      +'</div></div>';
+  }).join('');
+}
 
-/* QR */
+function syncFilters(){
+  var opts='<option value="">전체 부서</option>'+DEPTS.map(function(d){return'<option>'+d+'</option>';}).join('');
+  document.getElementById('fDept').innerHTML=opts;
+  document.getElementById('fMemDept').innerHTML=opts;
+  document.getElementById('editDept').innerHTML='<option value="">부서 선택</option>'+DEPTS.map(function(d){return'<option>'+d+'</option>';}).join('');
+}
+
+function quickApprove(id,approve){
+  var emp=EMP.find(function(e){return e.id===id;});
+  if(!emp)return;
+  emp.status=approve?'승인':'거절';
+  saveEmpToStorage();renderDash();renderMembers();
+  toast('b-mem',(approve?'✅ '+emp.name+' 승인':'❌ '+emp.name+' 거절'));
+}
+
+function openAddModal(){
+  EDIT_IDX=-1;
+  document.getElementById('modalTitle').textContent='직원 추가';
+  document.getElementById('editName').value='';
+  document.getElementById('editDept').value='';
+  document.getElementById('editPosition').innerHTML='<option value="">직책 선택</option>';
+  document.getElementById('editStatus').value='승인';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function openEditModal(id){
+  var emp=EMP.find(function(e){return e.id===id;});
+  if(!emp)return;
+  EDIT_IDX=id;
+  document.getElementById('modalTitle').textContent='직원 수정';
+  document.getElementById('editName').value=emp.name;
+  document.getElementById('editDept').value=emp.dept;
+  updateEditPositions();
+  setTimeout(function(){document.getElementById('editPosition').value=emp.position;},50);
+  document.getElementById('editStatus').value=emp.status;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function updateEditPositions(){
+  var dept=document.getElementById('editDept').value;
+  var pos=POSITIONS[dept]||[];
+  document.getElementById('editPosition').innerHTML='<option value="">직책 선택</option>'+pos.map(function(p){return'<option>'+p+'</option>';}).join('');
+}
+
+function saveMember(){
+  var name    =document.getElementById('editName').value.trim();
+  var dept    =document.getElementById('editDept').value;
+  var position=document.getElementById('editPosition').value;
+  var status  =document.getElementById('editStatus').value;
+  if(!name||!dept||!position){alert('모든 항목을 입력해 주세요.');return;}
+  if(EDIT_IDX===-1){
+    EMP.push({id:Date.now(),dept:dept,position:position,name:name,tgId:'',status:status});
+    toast('b-mem','✅ '+name+' 추가 완료!');
+  } else {
+    var emp=EMP.find(function(e){return e.id===EDIT_IDX;});
+    if(emp){emp.name=name;emp.dept=dept;emp.position=position;emp.status=status;}
+    toast('b-mem','✅ '+name+' 수정 완료!');
+  }
+  saveEmpToStorage();renderMembers();renderDash();renderAtt();closeModal();
+}
+
+function deleteMember(id){
+  var emp=EMP.find(function(e){return e.id===id;});
+  if(!emp||!confirm(emp.name+' 삭제할까요?'))return;
+  EMP=EMP.filter(function(e){return e.id!==id;});
+  delete ATT[id];
+  saveEmpToStorage();saveAttToStorage();
+  renderMembers();renderDash();renderAtt();
+}
+
+function closeModal(){document.getElementById('editModal').classList.remove('open');}
+
+function getMyLoc(){
+  if(!navigator.geolocation){alert('GPS 미지원');return;}
+  navigator.geolocation.getCurrentPosition(function(pos){
+    document.getElementById('offLat').value=pos.coords.latitude.toFixed(6);
+    document.getElementById('offLng').value=pos.coords.longitude.toFixed(6);
+    toast('b-cfg','현재 위치 입력됨! 저장 누르세요.');
+  },function(){alert('위치 가져오기 실패');});
+}
+function updateRadius(){document.getElementById('radiusVal').textContent=document.getElementById('radiusSlider').value+'m';}
+function saveLoc(){
+  var lat=parseFloat(document.getElementById('offLat').value);
+  var lng=parseFloat(document.getElementById('offLng').value);
+  var r=parseInt(document.getElementById('radiusSlider').value);
+  if(isNaN(lat)||isNaN(lng)){alert('위도·경도를 입력하세요');return;}
+  OFFICE={lat:lat,lng:lng,radius:r,useGps:true};
+  try{localStorage.setItem('office_loc',JSON.stringify(OFFICE));}catch(e){}
+  toast('b-cfg','✅ 위치 저장 완료!');
+}
+function skipLoc(){OFFICE.useGps=false;toast('b-cfg','위치 확인 없이 사용');}
+
+function sendNotice(){
+  var text=document.getElementById('noticeText').value.trim();
+  if(!text){alert('공지 내용을 입력하세요');return;}
+  if(!confirm('전체 직원에게 공지를 발송할까요?'))return;
+  toast('b-cfg','📨 공지 발송됨!');
+  document.getElementById('noticeText').value='';
+}
+
+function escCsv(c){return'"'+(c||'').toString().replace(/"/g,'""').replace(/\n/g,' ')+'"';}
+function buildCSV(empList,attData,date){
+  var rows=[['날짜','요일','출석시간','부서','직책','이름','업무내용','상태']];
+  var days=['일','월','화','수','목','금','토'];
+  var day=days[new Date(date).getDay()]+'요일';
+  empList.forEach(function(e){
+    var r=attData[e.id];
+    rows.push(r?[date,day,r.time,e.dept,e.position,e.name,r.task||'','출석']
+               :[date,day,'-',e.dept,e.position,e.name,'','미출석']);
+  });
+  return rows.map(function(row){return row.map(escCsv).join(',');}).join('\n');
+}
+
+function downloadToday(){
+  if(!EMP.length){alert('직원이 없습니다');return;}
+  var today=todayStr();
+  var blob=new Blob(['\uFEFF'+buildCSV(EMP,ATT,today)],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='출석부_'+today+'.csv';a.click();
+  toast('b-dash','✅ 엑셀 다운로드 완료!');
+}
+
+function saveDayToHistory(){
+  if(!Object.keys(ATT).length){alert('출석 기록이 없습니다');return;}
+  if(!confirm('오늘 기록을 저장하고 초기화할까요?'))return;
+  var today=todayStr();
+  HISTORY=HISTORY.filter(function(h){return h.date!==today;});
+  HISTORY.push({date:today,total:EMP.length,att:JSON.parse(JSON.stringify(ATT)),emp:JSON.parse(JSON.stringify(EMP))});
+  HISTORY.sort(function(a,b){return b.date.localeCompare(a.date);});
+  saveHistoryToStorage();
+  ATT={};saveAttToStorage();
+  renderDash();renderAtt();
+  toast('b-dash','✅ 마감 완료!');
+}
+
+function renderHistory(){
+  var el=document.getElementById('historyList');
+  var empty=document.getElementById('historyEmpty');
+  if(!HISTORY.length){el.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  el.innerHTML=HISTORY.map(function(h,idx){
+    var cnt=Object.keys(h.att).length;
+    var ds=new Date(h.date).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+    return'<div class="history-card"><div class="history-date"><span>📅 '+ds+'</span><span class="history-stat">출석 '+cnt+'/'+h.total+'명</span></div>'
+      +'<div class="history-btns">'
+      +'<button class="history-btn" onclick="downloadHistoryDay('+idx+')">📥 엑셀</button>'
+      +'<button class="history-btn danger" onclick="deleteHistory('+idx+')">삭제</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function downloadHistoryDay(idx){
+  var h=HISTORY[idx];
+  var blob=new Blob(['\uFEFF'+buildCSV(h.emp,h.att,h.date)],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='출석부_'+h.date+'.csv';a.click();
+}
+
+function deleteHistory(idx){
+  if(!confirm(HISTORY[idx].date+' 기록을 삭제할까요?'))return;
+  HISTORY.splice(idx,1);saveHistoryToStorage();renderHistory();
+}
+
+function downloadAllHistory(){
+  if(!HISTORY.length){alert('기록 없음');return;}
+  var rows=[['날짜','요일','출석시간','부서','직책','이름','업무내용','상태']];
+  HISTORY.forEach(function(h){
+    var days=['일','월','화','수','목','금','토'];
+    var day=days[new Date(h.date).getDay()]+'요일';
+    h.emp.forEach(function(e){
+      var r=h.att[e.id];
+      rows.push(r?[h.date,day,r.time,e.dept,e.position,e.name,r.task||'','출석']
+                 :[h.date,day,'-',e.dept,e.position,e.name,'','미출석']);
+    });
+  });
+  var csv=rows.map(function(row){return row.map(escCsv).join(',');}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='전체출석기록.csv';a.click();
+  toast('b-his','✅ 전체 기록 다운로드!');
+}
+
 var qrMade=false;
 function makeQR(){
-  if(qrMade)return; qrMade=true;
-  var el=document.getElementById('qrDiv'); el.innerHTML='';
-  var url=location.href.split('?')[0].split('#')[0]+'?tab=chk';
-  document.getElementById('qrUrlTxt').textContent=url;
-  try{new QRCode(el,{text:url,width:220,height:220,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+  if(qrMade)return;qrMade=true;
+  var el=document.getElementById('qrDiv');el.innerHTML='';
+  var url='https://t.me/QR_SnapBot?start=checkin';
+  document.getElementById('qrUrl').textContent=url;
+  try{new QRCode(el,{text:url,width:220,height:220,colorDark:'#1565c0',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
 }
 function printQR(){
   var img=document.querySelector('#qrDiv img');var c=document.querySelector('#qrDiv canvas');
-  var src=img?img.src:(c?c.toDataURL():'');if(!src){alert('잠시 후 다시 시도하세요');return;}
+  var src=img?img.src:(c?c.toDataURL():'');if(!src)return;
   var w=window.open('');
-  w.document.write('<html><body style="text-align:center;padding:40px;font-family:sans-serif;"><h2>출근 QR</h2><img src="'+src+'" style="width:260px;"></body></html>');
+  w.document.write('<html><body style="text-align:center;padding:40px;font-family:sans-serif;">'
+    +'<h2 style="color:#1565c0;margin-bottom:8px;">출결 체크 QR</h2>'
+    +'<p style="color:#888;margin-bottom:16px;">@QR_SnapBot</p>'
+    +'<img src="'+src+'" style="width:280px;"><br>'
+    +'<p style="margin-top:16px;color:#666;font-size:14px;">스캔 후 텔레그램으로 출석하세요</p>'
+    +'</body></html>');
   w.document.close();w.print();
 }
 function dlQR(){
-  var c=document.querySelector('#qrDiv canvas');if(!c){alert('잠시 후');return;}
-  var a=document.createElement('a');a.download='출근QR.png';a.href=c.toDataURL();a.click();
+  var c=document.querySelector('#qrDiv canvas');if(!c)return;
+  var a=document.createElement('a');a.download='출결QR.png';a.href=c.toDataURL();a.click();
+}
+
+function saveEmpToStorage(){try{localStorage.setItem('att_emp',JSON.stringify(EMP));}catch(e){}}
+function saveAttToStorage(){try{localStorage.setItem('att_today',JSON.stringify({date:todayStr(),att:ATT}));}catch(e){}}
+function saveHistoryToStorage(){try{localStorage.setItem('att_history',JSON.stringify(HISTORY));}catch(e){}}
+
+function loadFromStorage(){
+  try{
+    var se=localStorage.getItem('att_emp');if(se)EMP=JSON.parse(se);
+    var sa=localStorage.getItem('att_today');
+    if(sa){var p=JSON.parse(sa);if(p.date===todayStr())ATT=p.att||{};}
+    var sh=localStorage.getItem('att_history');if(sh)HISTORY=JSON.parse(sh);
+    var sl=localStorage.getItem('office_loc');
+    if(sl){
+      OFFICE=JSON.parse(sl);
+      document.getElementById('offLat').value=OFFICE.lat||'';
+      document.getElementById('offLng').value=OFFICE.lng||'';
+      document.getElementById('radiusSlider').value=OFFICE.radius||100;
+      document.getElementById('radiusVal').textContent=(OFFICE.radius||100)+'m';
+    }
+  }catch(e){}
+}
+
+function resetAll(){
+  if(!confirm('⚠️ 모든 데이터를 초기화할까요?'))return;
+  localStorage.clear();location.reload();
 }
 
 function go(name){
-  ['reg','loc','qr','chk','att'].forEach(function(n){
+  ['dash','att','mem','qr','his','cfg'].forEach(function(n){
     document.getElementById('tb-'+n).classList.toggle('active',n===name);
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
   });
   if(name==='att')renderAtt();
-  if(name==='qr')setTimeout(makeQR,100);
-  if(name==='chk')startGPS();
+  if(name==='mem')renderMembers();
+  if(name==='his')renderHistory();
+  if(name==='dash')renderDash();
 }
 
 function toast(id,msg){
-  var el=document.getElementById(id);el.textContent=msg;el.style.display='';
-  clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},3500);
+  var el=document.getElementById(id);
+  el.className='bar s';el.textContent=msg;el.style.display='';
+  clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},3000);
 }
 
-var params=new URLSearchParams(location.search);
-if(params.get('tab')==='chk')setTimeout(function(){go('chk');},300);
-
-loadBuiltin();
+init();
 </script>
 </body>
 </html>
